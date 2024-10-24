@@ -1,0 +1,87 @@
+# NYC Taxi Project
+
+This project analyzes NYC taxi data to train machine learning models for predictions or data analysis. The project includes code for data loading, cleaning, preprocessing, as well as model training and evaluation. For the modelling and analysis part, the project uses a multi-layer perceptron (MLP) for prediction.
+
+Our goal is to predict the fare amount of a trip by the `PUlocation` and `DOlocation`, which means pick-up location and drop-off location respectively. Our strategy is to utilize One-Hot encoder to model the trips. This is because the `PUlocationID` and `DOlocationID` features are recorded as a region number of the NYC, making it available for one-hot encoder.
+
+## Dependencies
+
+To run the project, you'll need the following dependencies. These can be installed using `pip`:
+
+```{bash}
+pip install -r requirements.txt
+```
+
+## Data Collection
+
+The data we trying to analyze is the trip data of yellow cabs in New York City (NYC) in Jan, 2024. The original source of the data is on <https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page>. We downloaded the `yellow_tripdata_2024-01.parquet` file, you can also find it in the `data/` folder within our project Directory.
+
+```{python}
+import pandas as pd
+from sklearn.model_selection import train_test_split
+import os, sys
+
+path = os.path.dirname(os.path.realpath(__file__))
+path = path.rstrip('notebooks')
+os.chdir(path) # add directory
+sys.path.append(os.path.join(path, 'scripts')) # add paths to the _utils.py
+
+# data loading
+ytd_2024_01_df = pd.read_parquet('data/yellow_tripdata_2024-01.parquet')
+```
+
+## Data Cleaning and Pre-processing
+
+First, we drop all the NA values in the raw data.
+
+Then, since we want to analyze mainly the trips within the NYC, we are screening the trips by their distances. Any trip with a distance over *100 miles* is dropped from the dataframe.
+
+Next, since our goal is to predict the fare amount by the pick-up location and drop-off locations, we select out these features and perform a train-test split on the data. In our implementation of the experiment, we chose a trainging size of 500,000. 
+
+```{python}
+from data_utils import clean_taxi_df, split_taxi_data
+
+# data loading and cleaning
+clean_df = clean_taxi_df(ytd_2024_01_df)
+
+# preprocessing
+location_ids = ['PULocationID', 'DOLocationID']
+X_train, X_test, y_train, y_test = split_taxi_data(clean_df=clean_df, 
+                                                   x_columns=location_ids, 
+                                                   y_column="fare_amount", 
+                                                   train_size=500000)
+```
+
+## Exploratory Data Analysis
+
+We can get a rough idea about the relationship with the fare and the PULocationID and DOLocationID. From the heatmap figure, it seems no significant, easy-to-capture patterns can be found. It also motivates us to utilize more complicated models.
+
+```{python}
+df_eda = X_train.copy()
+df_eda['amount'] = y_train.copy()
+print(df_eda)
+grouped_df = df_eda.groupby(['PULocationID', 'DOLocationID']).amount.mean().reset_index()
+pivot_df = grouped_df.pivot(index='DOLocationID', columns='PULocationID', values='amount')
+```
+
+```{python}
+import seaborn as sns
+import matplotlib.pyplot as plt
+# Create the heatmap
+plt.figure(figsize=(10,8))
+sns.heatmap(pivot_df)
+
+# Add titles and labels
+plt.title("Average Fare Amount by Pickup and Dropoff Location")
+plt.xlabel("Pickup Location")
+plt.ylabel("Dropoff Location")
+
+# Show the plot
+plt.show()
+```
+
+## Modelling and analysis
+
+We trained a three layer MLP for 5 epochs to predict the fare paid. 
+
+We used a L-1 loss (MAE) and Adam optimizer with learning rate set as 1e-4. The batch size for training is 10, so within each epoch, there should be 50,000 step updates.
