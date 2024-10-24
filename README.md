@@ -13,16 +13,17 @@ pip install -r requirements.txt
 ## Project Sturcture
 
 NYC_Taxi_Project/
-├── data/                       # Folder for datasets
-│   └── yellow_tripdata_2024-01.parquet
-├── models/                     # Folder for saving trained models
-├── notebooks/                  # Jupyter notebooks for exploration (optional)
-├── scripts/                    # Utility scripts for data and models
-│   ├── data_utils.py           # Functions for data loading, cleaning, and splitting
-│   └── model_utils.py          # Dataset class, model architecture, and training code
-├── train_model.py              # Main script to load data, process, and train models
-├── README.md                   # Project documentation (this file)
-└── requirements.txt            # Python dependencies
+- data/                       # Folder for datasets
+  - yellow_tripdata_2024-01.parquet
+- models/                     # Folder for saving trained models
+- notebooks/                  # Jupyter notebooks for exploration (optional)
+- scripts/                    # Utility scripts for data and models
+  - data_utils.py             # Functions for data loading, cleaning, and splitting
+  - model_utils.py            # Dataset class, model architecture, and training code
+- train_model.py              # Main script to load data, process, and train models
+- README.md                   # Project documentation (this file)
+- requirements.txt            # Python dependencies
+
 
 ## How to run the code
 
